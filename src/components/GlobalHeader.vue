@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { h, ref } from 'vue'
-import { HomeOutlined } from '@ant-design/icons-vue'
-import { MenuProps } from 'ant-design-vue'
+import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
+import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+import { userLoginOutUsingPost } from '@/api/userController.ts'
+
 const items = ref<MenuProps['items']>([
   {
     key: '/',
@@ -38,6 +40,24 @@ const doMenuClick = ({ key }) => {
 }
 
 const loginUserStore = useLoginUserStore()
+
+// 退出登录
+const doLogout = async () => {
+  const res = await userLoginOutUsingPost()
+  if (res.data.code === 0) {
+    loginUserStore.setLoginUser({
+      userName: '未登录'
+    })
+    message.success("退出成功")
+
+    await router.push({
+      path: '/user/login',
+      replace: true,
+    })
+  }else {
+    message.error("退出失败：" + res.data.message)
+  }
+}
 </script>
 
 <template id="globalHeader">
@@ -62,7 +82,24 @@ const loginUserStore = useLoginUserStore()
     <a-col flex="120px">
       <div class="user-login-status">
         <div v-if="loginUserStore.loginUser.id">
-          {{ loginUserStore.loginUser.userName ?? '无名' }}
+          <a-dropdown>
+            <a-space>
+              <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+              {{ loginUserStore.loginUser.userName ?? '无名' }}
+            </a-space>
+
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  个人信息
+                </a-menu-item>
+                <a-menu-item @click="doLogout">
+                  <LogoutOutlined />
+                  退出登录
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
         <div v-else>
           <a-button type="primary" href="/user/login">登录</a-button>

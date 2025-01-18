@@ -1,19 +1,40 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
+import { userLoginUsingPost } from '@/api/userController.ts'
+import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+import { message } from 'ant-design-vue'
+import router from '@/router'
 
 // 用于接收表单输入值
-const formState = reactive<API.UserRegisterRequest>({
+const formState = reactive<API.UserLoginRequest>({
   userAccount: '',
   userPassword: '',
 })
-const handleSubmit = (values: any) => {
-  console.log('Success:', values)
+
+const loginUserStore =  useLoginUserStore()
+
+// 提交表单
+const handleSubmit = async (values: any) => {
+  // 防止异步调用
+  const res = await userLoginUsingPost(values)
+
+  // 登录成功
+  if (res.data.code === 0 && res.data.data) {
+    await loginUserStore.fetchLoginUser()
+    message.success("登录成功");
+    await router.push({
+      path: '/',
+      replace: true,
+    })
+  }else{
+    message.error("登录失败：" + res.data.message)
+  }
 }
 </script>
 
 <template>
   <div id="userLoginPage">
-    <h2 class="title">云图库共享平台</h2>
+    <h2 class="title">云图库共享平台--用户登录</h2>
     <div class="desc">智能协同云图库</div>
     <a-form :model="formState" name="basic" autocomplete="off" @finish="handleSubmit">
       <a-form-item

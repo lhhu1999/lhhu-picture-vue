@@ -3,7 +3,7 @@ import { message } from 'ant-design-vue'
 
 //创建axios实例
 const myAxios = axios.create({
-  baseURL: 'http://localhost:8123',
+  baseURL: 'http://localhost:8081',
   // 如果请求时间超过 `timeout` 的值，则请求会被中断， 默认值是 `0` (永不超时)
   timeout: 60000,
   // `withCredentials` 表示跨域请求时是否需要使用凭证
