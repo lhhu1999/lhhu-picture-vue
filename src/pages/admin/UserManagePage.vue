@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, computed } from 'vue'
 import { listUserVoByPageUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
@@ -34,10 +34,6 @@ const columns = [
     dataIndex: 'createTime',
   },
   {
-    title: '更新时间',
-    dataIndex: 'updateTime',
-  },
-  {
     title: '操作',
     key: 'action',
   },
@@ -46,12 +42,6 @@ const columns = [
 // 定义数据
 const dataList = ref<API.UserVO>([])
 const total = ref(0)
-
-//搜索条件
-const searchParams = reactive<API.UserQueryRequest>({
-  currentPage: 1,
-  pageSize: 10,
-})
 
 const fetchData = async () => {
   const res = await listUserVoByPageUsingPost({ ...searchParams })
@@ -68,11 +58,62 @@ const fetchData = async () => {
 onMounted(() => {
   fetchData()
 })
+
+//搜索条件
+const searchParams = reactive<API.UserQueryRequest>({
+  currentPage: 1,
+  pageSize: 10,
+  orderBy: "createTime",
+  orderType: "desc"
+})
+
+// 分页参数, 使用计算属性动态改变
+const pagination = computed(() => {
+  return {
+    current: searchParams.currentPage ?? 1,
+    pageSize: searchParams.pageSize ?? 10,
+    total: total.value ?? 0,
+    showSizeChanger: true,
+    showTotal: (total) => `共 ${total} 条`,
+  }
+})
+
+// 分页表格变化
+const doTableChange =(page: any) => {
+  searchParams.currentPage = page.current
+  searchParams.pageSize = page.pageSize
+  fetchData()
+}
+
+// 搜索数据
+const doSearch = () => {
+  // 重置页码
+  searchParams.currentPage = 1
+  fetchData()
+}
+
 </script>
 
 <template>
   <div id="userManagePage">
-    <a-table :columns="columns" :data-source="dataList">
+    <a-form layout="inline" :model="searchParams" @finish="doSearch">
+      <a-form-item label="账号">
+        <a-input v-model:value="searchParams.userAccount" placeholder="输入账号" allow-clear />
+      </a-form-item>
+      <a-form-item label="昵称">
+        <a-input v-model:value="searchParams.userName" placeholder="输入昵称" allow-clear />
+      </a-form-item>
+      <a-form-item label="简介">
+        <a-input v-model:value="searchParams.userProfile" placeholder="输入简介" allow-clear />
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" html-type="submit">搜索</a-button>
+      </a-form-item>
+    </a-form>
+
+    <div style="margin-bottom: 10px" />
+
+    <a-table :columns="columns" :data-source="dataList" :pagination="pagination" @change="doTableChange">
       <template #headerCell="{ column }" />
 
       <template #bodyCell="{ column, record }">
@@ -93,8 +134,8 @@ onMounted(() => {
           {{dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
 
-        <template v-else-if="column.dataIndex === 'updateTime'">
-          {{dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
+        <template v-else-if="column.key === 'action'">
+          <a-button danger>删除</a-button>
         </template>
       </template>
     </a-table>
