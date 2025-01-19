@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { userLoginOutUsingPost } from '@/api/userController.ts'
 
-const items = ref<MenuProps['items']>([
+// 未过滤菜单项
+const originItems = [
   {
     key: '/',
     icon: () => h(HomeOutlined),
@@ -28,7 +29,26 @@ const items = ref<MenuProps['items']>([
     label: h('a', { href: 'https://www.bilibili.com/', target: '_blank' }, '哔哩哔哩'),
     title: '哔哩哔哩',
   },
-])
+]
+
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  console.log(menus)
+  return menus?.filter((menu) => {
+    // 管理员才能看到admin路径开头的菜单
+    if (menu.key.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== 'admin') {
+        return false
+      }
+    }
+    return true
+  })
+}
+
+// 可展示菜单项
+const items = computed<MenuProps['items']>(() => filterMenus(originItems))
+console.log(items)
 
 const router = useRouter()
 const current = ref<string[]>(['/'])
@@ -51,16 +71,16 @@ const doLogout = async () => {
   const res = await userLoginOutUsingPost()
   if (res.data.code === 0) {
     loginUserStore.setLoginUser({
-      userName: '未登录'
+      userName: '未登录',
     })
-    message.success("退出成功")
+    message.success('退出成功')
 
     await router.push({
       path: '/user/login',
       replace: true,
     })
-  }else {
-    message.error("退出失败：" + res.data.message)
+  } else {
+    message.error('退出失败：' + res.data.message)
   }
 }
 </script>
@@ -95,9 +115,7 @@ const doLogout = async () => {
 
             <template #overlay>
               <a-menu>
-                <a-menu-item>
-                  个人信息
-                </a-menu-item>
+                <a-menu-item> 个人信息 </a-menu-item>
                 <a-menu-item @click="doLogout">
                   <LogoutOutlined />
                   退出登录

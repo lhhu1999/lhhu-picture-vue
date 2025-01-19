@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from 'vue'
-import { listUserVoByPageUsingPost } from '@/api/userController.ts'
+import { listUserVoByPageUsingPost, deleteUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 
@@ -63,8 +63,8 @@ onMounted(() => {
 const searchParams = reactive<API.UserQueryRequest>({
   currentPage: 1,
   pageSize: 10,
-  orderBy: "createTime",
-  orderType: "desc"
+  orderBy: 'createTime',
+  orderType: 'desc',
 })
 
 // 分页参数, 使用计算属性动态改变
@@ -79,7 +79,7 @@ const pagination = computed(() => {
 })
 
 // 分页表格变化
-const doTableChange =(page: any) => {
+const doTableChange = (page: any) => {
   searchParams.currentPage = page.current
   searchParams.pageSize = page.pageSize
   fetchData()
@@ -92,6 +92,20 @@ const doSearch = () => {
   fetchData()
 }
 
+// 删除数据
+const doDelete = async (id: string) => {
+  if (!id) {
+    return
+  }
+  const res = await deleteUserUsingPost({ id })
+  if (res.data.code === 0) {
+    message.success('删除成功')
+    // 刷新数据
+    await fetchData()
+  } else {
+    message.error('删除失败：' + res.data.message)
+  }
+}
 </script>
 
 <template>
@@ -113,7 +127,12 @@ const doSearch = () => {
 
     <div style="margin-bottom: 10px" />
 
-    <a-table :columns="columns" :data-source="dataList" :pagination="pagination" @change="doTableChange">
+    <a-table
+      :columns="columns"
+      :data-source="dataList"
+      :pagination="pagination"
+      @change="doTableChange"
+    >
       <template #headerCell="{ column }" />
 
       <template #bodyCell="{ column, record }">
@@ -131,11 +150,11 @@ const doSearch = () => {
         </template>
 
         <template v-else-if="column.dataIndex === 'createTime'">
-          {{dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
 
         <template v-else-if="column.key === 'action'">
-          <a-button danger>删除</a-button>
+          <a-button danger @click="doDelete(record.id)">删除</a-button>
         </template>
       </template>
     </a-table>
