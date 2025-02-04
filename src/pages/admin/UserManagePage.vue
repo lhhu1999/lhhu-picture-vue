@@ -48,7 +48,7 @@ const fetchData = async () => {
 
   if (res.data.code === 0 && res.data.data) {
     dataList.value = res.data.data.records ?? []
-    total.value = res.data.data.total ?? 0
+    total.value = Number(res.data.data.total) ?? 0
   } else {
     message.error('数据获取失败：' + res.data.message)
   }
@@ -118,7 +118,7 @@ const doDelete = async (id: string) => {
         <a-input v-model:value="searchParams.userName" placeholder="输入昵称" allow-clear />
       </a-form-item>
       <a-form-item label="简介">
-        <a-input v-model:value="searchParams.userProfile" placeholder="输入简介" allow-clear />
+        <a-textarea v-model:value="searchParams.userProfile" placeholder="输入简介" allow-clear />
       </a-form-item>
       <a-form-item>
         <a-button type="primary" html-type="submit">搜索</a-button>
