@@ -35,7 +35,7 @@ const fetchData = async () => {
   const res = await listPictureVoByPageUsingPost(params)
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
-    total.value = res.data.data.total ?? 0
+    total.value = Number(res.data.data.total) ?? 0
   } else {
     message.error('获取数据失败，' + res.data.message)
   }
@@ -138,7 +138,6 @@ onMounted(() => {
       :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
       :data-source="dataList"
       :pagination="pagination"
-      :loading="loading"
     >
       <template #renderItem="{ item: picture }">
         <a-list-item style="padding: 0">

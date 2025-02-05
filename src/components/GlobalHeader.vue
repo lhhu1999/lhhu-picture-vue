@@ -43,7 +43,6 @@ const originItems = [
 
 // 过滤菜单项
 const filterMenus = (menus = [] as MenuProps['items']) => {
-  console.log(menus)
   return menus?.filter((menu) => {
     // 管理员才能看到admin路径开头的菜单
     if (menu.key.startsWith('/admin')) {
@@ -58,7 +57,6 @@ const filterMenus = (menus = [] as MenuProps['items']) => {
 
 // 可展示菜单项
 const items = computed<MenuProps['items']>(() => filterMenus(originItems))
-console.log(items)
 
 const router = useRouter()
 const current = ref<string[]>(['/'])
