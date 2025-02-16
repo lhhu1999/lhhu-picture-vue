@@ -10,7 +10,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import ImageCropper from '@/components/ImageCropper.vue'
-import { EditOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
+import ImageOutPainting from '@/components/ImageOutPainting.vue'
 
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
@@ -77,13 +78,14 @@ const getTagCategoryOptions = async () => {
   }
 }
 
+// ---------------------------图片编辑------------------------
 // 图片编辑弹窗引用
 const imageCropperRef = ref()
 
 // 编辑图片
 const doEditPicture = () => {
   if (imageCropperRef.value) {
-    imageCropperRef.value.openModal()
+    imageCropperRef.value?.openModal()
   }
 }
 
@@ -92,6 +94,21 @@ const onCropSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
 
+// ---------------------------AI图片编辑------------------------
+// 图片编辑弹窗引用
+const imageOutPaintingRef = ref()
+
+// 编辑图片
+const doImagePainting = () => {
+  if (imageOutPaintingRef.value) {
+    imageOutPaintingRef.value?.openModal()
+  }
+}
+
+// 编辑成功事件
+const onImageOutPaintingSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 
 onMounted(() => {
   getTagCategoryOptions()
@@ -130,7 +147,7 @@ onMounted(() => {
     </h2>
     <!-- 选择上传方式 -->
     <a-tabs v-model:activeKey="uploadType"
-    >>
+      >>
       <a-tab-pane key="file" tab="文件上传">
         <PictureUpload :picture="picture" :onSuccess="onSuccess" />
       </a-tab-pane>
@@ -140,15 +157,22 @@ onMounted(() => {
     </a-tabs>
 
     <div v-if="picture" class="edit-bar">
-      <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
+      <a-space size="middle">
+        <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
+        <a-button type="primary" :icon="h(FullscreenOutlined)" @click="doImagePainting">AI扩图</a-button>
+      </a-space>
       <ImageCropper
         ref="imageCropperRef"
         :imageUrl="picture?.url"
         :picture="picture"
         :onSuccess="onCropSuccess"
       />
+      <ImageOutPainting
+        ref="imageOutPaintingRef"
+        :picture="picture"
+        :onSuccess="onImageOutPaintingSuccess"
+      ></ImageOutPainting>
     </div>
-
 
     <!-- 图片信息表单 -->
     <a-form
@@ -204,5 +228,4 @@ onMounted(() => {
   text-align: center;
   margin: 16px 0;
 }
-
 </style>
